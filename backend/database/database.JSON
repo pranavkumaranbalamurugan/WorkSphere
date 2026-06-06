@@ -1,0 +1,82 @@
+{
+    "EMP20260001": {
+        "first_name": "Pranav",
+        "last_name": "Bala",
+        "email": "pranav@gmail.com",
+        "password": "$2b$12$bBevgoD9qddKGGUcJMW9Pegi1AzmgStWpXMnMQetLi2nWJxtYG6Bi",
+        "phone": "9344179264",
+        "role": "AI Engineer"
+    },
+    "EMP20260002": {
+        "first_name": "Arjun",
+        "last_name": "Kumar",
+        "email": "arjun.kumar@gmail.com",
+        "password": "$2b$12$.IyDa8LVU56DRhifpZiXRecGdSq1PDmXufcefkwk3oV6hQpZkUoaq",
+        "phone": "9876543210",
+        "role": "Frontend Developer"
+    },
+    "EMP20260003": {
+        "first_name": "Meena",
+        "last_name": "Ravi",
+        "email": "meena.ravi@gmail.com",
+        "password": "$2b$12$lYdZfy.bDFx2yKbBAyY.AODcy6r3ZqNY/WpScBctSiWF5gjgbij1a",
+        "phone": "9123456780",
+        "role": "Backend Developer"
+    },
+    "EMP20260004": {
+        "first_name": "Karthik",
+        "last_name": "Narayan",
+        "email": "karthik.n@gmail.com",
+        "password": "$2b$12$N69vCb5ihoupH6zN7WyqmeqOpY1h.WFjIe2iF78tzr88ZhMAm4V7a",
+        "phone": "9012345678",
+        "role": "DevOps Engineer"
+    },
+    "EMP20260005": {
+        "first_name": "Divya",
+        "last_name": "Shree",
+        "email": "divya.shree@gmail.com",
+        "password": "$2b$12$IsxJjpxgnqabHz3sL8mLb.cuMsAKMY7UDgNe5w.RButJ4GFai7SPG",
+        "phone": "9988776655",
+        "role": "UI/UX Designer"
+    },
+    "EMP20260006": {
+        "first_name": "Rahul",
+        "last_name": "Menon",
+        "email": "rahul.menon@gmail.com",
+        "password": "$2b$12$YFPz4G83fH5VRpkv7fgqZOTF6hO0EnE309zCQomYpVJlvg2yJeYda",
+        "phone": "9090909090",
+        "role": "Cloud Engineer"
+    },
+    "EMP20260007": {
+        "first_name": "Sneha",
+        "last_name": "Iyer",
+        "email": "sneha.iyer@gmail.com",
+        "password": "$2b$12$YAAxIvtMkWxOJ/lYcH04lOy6O.kvAaFCjI6phY04LhHqIDSbWFXHi",
+        "phone": "9784561230",
+        "role": "Data Analyst"
+    },
+    "EMP20260008": {
+        "first_name": "Vikram",
+        "last_name": "Seth",
+        "email": "vikram.seth@gmail.com",
+        "password": "$2b$12$1fRuHcat/0CU0HUu4O75luLG2O2nBd6VMSgU8.sI9ZwLIYWKuynF6",
+        "phone": "9658741230",
+        "role": "Cybersecurity Analyst"
+    },
+    "EMP20260009": {
+        "first_name": "Ananya",
+        "last_name": "Krishnan",
+        "email": "ananya.k@gmail.com",
+        "password": "$2b$12$qXewF.UM/XZB2SOF1jcdx.d1QY88dYae8c.3pFQmeeWXNnmnXjZW.",
+        "phone": "9345612780",
+        "role": "HR Manager"
+    },
+    "EMP20260010": {
+        "first_name": "Rohit",
+        "last_name": "Sharma",
+        "email": "rohit.sharma@gmail.com",
+        "password": "$2b$12$GfWmzrMQKO949qqp1cg67uy28m6VpRcM4QhZudaVjxUAKvxbakdhW",
+        "phone": "9871203456",
+        "role": "Machine Learning Engineer"
+    }
+}
