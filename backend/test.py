@@ -1,4 +1,7 @@
-from app.database.connection import engine
-from app.database.models import Base
+def create_work_email(first_name:str, last_name:str):
+    
+    company_domain="@homesync.com"
+    
+    return f"{first_name}.{last_name}{company_domain}"
 
-Base.metadata.create_all(bind=engine)
+print(create_work_email("pranavkumaran","balamurugan"))

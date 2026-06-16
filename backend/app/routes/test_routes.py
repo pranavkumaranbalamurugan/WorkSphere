@@ -1,67 +1,53 @@
-from fastapi import APIRouter,HTTPException
-from app.utils import validate_ph, hash_password, generate_emp_id, write_json, verify_password, database
-from app.schemas import Test_Signup, LoginSchema
+#Libraries Import
+from fastapi import APIRouter , HTTPException
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+#Services Import
+from app.models import Employee, Companies
+from app.schemas import CompanySignupSchema
+from app.db import get_db
 
 test=APIRouter()
 
-@test.post("/api/test/signup")
-def signup(user: Test_Signup):
 
-    if not validate_ph(user.phone):
-        raise HTTPException(status_code=422, detail="invalid number")
-    
-    elif user.password!=user.confirm_password:
-        raise HTTPException(status_code=400, detail="passwords do not match")
-    
-    
-    for emp in database.values():
-            if emp["email"] == user.email:
-                raise HTTPException(status_code=400, detail="email already exists")
-            
-    emp_id=generate_emp_id()
-    password=hash_password(user.password)
-     
-    database[emp_id]={
-        "first_name": user.first_name,
-        "last_name": user.last_name, 
-        "email": user.email,
-        "password": password,
-        "phone": user.phone, 
-        "role": user.role
-        }
-                
-    write_json("database", database)
+@test.delete("/api/test/delete_all_employees")
+def delete_all_values(secret: str, db: Session=Depends(get_db)):
 
-    return {"message":"Signed up successfully"}
-
-@test.delete("/api/test/delete_all_values")
-def delete_all_values(secret: str):
-    
-    global database
 
     if secret == "PRANAV":
         
-        database = {}
-
-        write_json("database", database)
-
+        num_deleted = db.query(Employee).delete()
+        db.commit()
+        
         return {"message": "all data deleted"}
 
     return {"message": "invalid secret"}
 
-@test.delete("/api/test/delete/{emp_id}")
-def delete(emp_id:str):
-    
-    global database
-    
-    if emp_id not in database:
-        raise HTTPException(status_code=404, detail="Employee ID not found! ")
-    else:
-        deleted_employee = database.pop(emp_id)
+@test.post ("/api/test/create_company")
+def create_company(company: CompanySignupSchema,db:Session=Depends(get_db)):
 
-        write_json("database", database)
+    new_company = Companies(
+        company_name=company.company_name,
+        company_domain=company.company_domain
+    )
+
+    try:
+        db.add(new_company)
+        db.commit()
+        db.refresh(new_company)
+
+        company_id=(
+            db.query(Companies.company_id)
+            .filter(Companies.company_name.like(company.company_name))
+            .scalar()    
+        )
 
         return {
-            "message": "employee deleted",
-            "deleted_data": deleted_employee
-            }
+            "messgae": "company added successfully",
+            "comapany_id": company_id 
+        }
+    
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code =500, detail=str(e))

@@ -1,68 +1,144 @@
+#Libraries Import
 import bcrypt
+from fastapi import Depends, HTTPException
 from datetime import datetime
-import json
+from sqlalchemy.orm import Session
+from typing import Annotated
+from jose import jwt, JWTError
+from starlette import status
+
+#Services Import
+from app.models import Employee, Companies, User
+from app.schemas import TokenData
+from app.db import get_db
+from app.config import SECRET_KEY, ALGORITHM, oauth2_scheme
 
 
 #Employee ID generation
-def generate_emp_id():
-    
-    year = datetime.now().year
-    emp_count=employee_count()
-    formatted_id = str(emp_count).zfill(4)
-    emp_id = f"EMP{year}{formatted_id}"
+def generate_emp_id(db: Session):
 
-    return emp_id
+    current_year = datetime.now().year
 
-def employee_count():
-    
-    current_year = str(datetime.now().year)
-    
-    if not database:
-        return 1
-    
-    else:
-        
-        last_emp_id=list(database.keys())[-1]
-        last_year=last_emp_id[3:7]
+    # Get latest employee of current year
+    latest_employee = (
+        db.query(Employee)
+        .filter(Employee.emp_id.like(f"EMP{current_year}%"))
+        .order_by(Employee.emp_id.desc())
+        .first()
+    )
 
-        if last_year==current_year:
-            
-            last_number = int(last_emp_id[-4:])
-            return last_number + 1
-        
-        else:
-            return 1
+    # First employee of the year
+    if not latest_employee:
 
+        return f"EMP{current_year}0001"
 
-#Password Hashing
-def hash_password(password: str):
+    # Extract last 4 digits
+    last_number = int(latest_employee.emp_id[-4:])
 
-    salt = bcrypt.gensalt()
+    new_number = last_number + 1
 
-    hashed_password = bcrypt.hashpw( password.encode("utf-8"), salt)
+    formatted_number = str(new_number).zfill(4)
 
-    return hashed_password.decode("utf-8")
+    return f"EMP{current_year}{formatted_number}"
 
-
-def verify_password(plain_password: str, hashed_password: str):
-
-    return bcrypt.checkpw( plain_password.encode("utf-8"),hashed_password.encode("utf-8"))
 
 #Validations
 def validate_ph(phone: str):
     return phone.isdigit() and len(phone) == 10
 
-#Database File Management
-def read_json(filename: str,):
+
+#RBAC Models
+
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        work_email = payload.get("sub")
+        emp_id = payload.get("id")
+        role = payload.get("role")
+        company_id=payload.get("company_id")
+
+        if work_email is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication"
+            )
+
+        return {
+            "work_email":work_email,
+            "id": emp_id,
+            "role": role,
+            "company_id": company_id
+        }
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
     
-    with open("database/"+filename+".json", "r") as file:
-        database = json.load(file)
+user_dependency = Annotated[dict, Depends(get_current_user)]
+    
+def require_role(allowed_roles: list):
 
-        return database
+    def role_checker(user: user_dependency):
 
-database=read_json("database")
+        if user["role"] not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="Operation not permitted"
+            )
 
-def write_json(filename: str, database: dict):
+        return user
 
-    with open("database/"+filename + ".json", "w") as file:
-        json.dump(database, file, indent=4)
+    return role_checker
+
+
+def require_roles(allowed_roles: list[str]):
+
+    def checker(
+        current_user: Annotated[
+            TokenData,
+            Depends(get_current_user)
+        ]
+    ):
+
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden"
+            )
+
+        return current_user
+
+    return checker
+
+
+def generate_work_email(first_name:str, last_name:str, db:Session = Depends(get_db)):
+
+    company_details=get_company_details()
+    company_domain=company_details.domain
+
+    return f"{first_name}.{last_name}@{company_domain}"
+
+def get_company_details(current_user:Annotated[TokenData, Depends(get_current_user)], db:Session = Depends(get_db)):
+    company_id = current_user.company_id
+
+    company_name=(
+        db.query(Companies.company_name)
+        .filter(Companies.company_id==company_id)
+        .scalar()
+    ) 
+
+    company_domain=(
+        db.query(Companies.company_domain)
+        .filter(Companies.company_id==company_id)
+        .scalar()
+    )
+
+    return{
+        "id":company_id,
+        "name":company_name,
+        "domain":company_domain
+    }      

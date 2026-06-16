@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Employee — Onboarding</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --border: #2a2a2a;
+      --border-focus: #b8ff57;
+      --accent: #b8ff57;
+      --accent-dim: rgba(184,255,87,0.08);
+      --danger: #ff4d4d;
+      --text: #e8e8e8;
+      --muted: #666;
+      --label: #999;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* ── Progress rail ── */
+    .rail {
+      width: 56px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 0;
+      gap: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+    }
+
+    .rail-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted);
+      writing-mode: vertical-lr;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .rail-track {
+      flex: 1;
+      width: 2px;
+      background: var(--border);
+      position: relative;
+      border-radius: 2px;
+    }
+
+    .rail-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      height: 0%;
+      box-shadow: 0 0 12px rgba(184,255,87,0.5);
+    }
+
+    .rail-pct {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--accent);
+      margin-top: 16px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 720px;
+      padding: 64px 56px 80px;
+    }
+
+    .header {
+      margin-bottom: 56px;
+    }
+
+    .btn-home {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--label);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-home:hover { border-color: var(--accent); color: var(--accent); }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-family: var(--display);
+      font-size: clamp(48px, 6vw, 72px);
+      line-height: 0.95;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+
+    .header p {
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 440px;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(184,255,87,0.2);
+      border-radius: 3px;
+      padding: 2px 7px;
+      letter-spacing: 0.05em;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    /* ── Grid ── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    /* ── Field ── */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--label);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 11px 14px;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      width: 100%;
+      appearance: none;
+    }
+
+    .field input::placeholder { color: var(--muted); }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--border-focus);
+      background: var(--accent-dim);
+      box-shadow: 0 0 0 3px rgba(184,255,87,0.06);
+    }
+
+    .field input.invalid { border-color: var(--danger); }
+    .field input.valid { border-color: rgba(184,255,87,0.4); }
+
+    .field .err {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--danger);
+      display: none;
+      letter-spacing: 0.05em;
+    }
+
+    .field.has-err .err { display: block; }
+
+    /* Custom select arrow */
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 12px;
+    }
+    .select-wrap select { padding-right: 32px; cursor: pointer; }
+
+    /* Password toggle */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 42px; }
+    .pw-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--mono);
+      padding: 4px;
+      transition: color 0.15s;
+    }
+    .pw-toggle:hover { color: var(--accent); }
+
+    /* ── CTA ── */
+    .cta-row {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .btn-submit {
+      background: var(--accent);
+      color: #0e0e0e;
+      border: none;
+      font-family: var(--display);
+      font-size: 18px;
+      letter-spacing: 0.05em;
+      padding: 14px 40px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-submit:hover { opacity: 0.88; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .status {
+      font-family: var(--mono);
+      font-size: 12px;
+      display: none;
+    }
+
+    .status.success { color: var(--accent); display: block; }
+    .status.error { color: var(--danger); display: block; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none;
+      max-width: 340px;
+      z-index: 99;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.toast-ok { border-color: rgba(184,255,87,0.4); }
+    .toast.toast-err { border-color: rgba(255,77,77,0.4); }
+    .toast-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .toast-ok .toast-dot { background: var(--accent); }
+    .toast-err .toast-dot { background: var(--danger); }
+
+    @media (max-width: 640px) {
+      .rail { display: none; }
+      .main { padding: 40px 24px 64px; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<aside class="rail">
+  <span class="rail-label">Progress</span>
+  <div class="rail-track">
+    <div class="rail-fill" id="railFill"></div>
+  </div>
+  <span class="rail-pct" id="railPct">0%</span>
+</aside>
+
+<main class="main">
+  <header class="header">
+    <a href="index.html" class="btn-home">⌂ Home</a>
+    <p class="eyebrow">HR Portal · Employee Setup</p>
+    <h1>New Hire<br>Onboarding</h1>
+    <p>Fill in the details below to register a new employee. All fields are required.</p>
+  </header>
+
+  <form id="empForm" novalidate>
+
+    <!-- Personal -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">01</span>
+        <span class="section-title">Personal Info</span>
+      </div>
+      <div class="grid-2">
+        <div class="field" id="f-first_name">
+          <label for="first_name">First Name</label>
+          <input id="first_name" name="first_name" type="text" placeholder="Jane" autocomplete="given-name" />
+          <span class="err">Required</span>
+        </div>
+        <div class="field" id="f-last_name">
+          <label for="last_name">Last Name</label>
+          <input id="last_name" name="last_name" type="text" placeholder="Smith" autocomplete="family-name" />
+          <span class="err">Required</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Work -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <span class="section-title">Work Details</span>
+      </div>
+      <div class="grid-1">
+        <div class="field" id="f-work_email">
+          <label for="work_email">Work Email</label>
+          <input id="work_email" name="work_email" type="email" placeholder="jane.smith@company.com" autocomplete="email" />
+          <span class="err">Enter a valid work email</span>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="field" id="f-department">
+          <label for="department">Department</label>
+          <div class="select-wrap">
+            <select id="department" name="department">
+              <option value="">— Select —</option>
+              <option>Engineering</option>
+              <option>Product</option>
+              <option>Design</option>
+              <option>Marketing</option>
+              <option>Sales</option>
+              <option>Finance</option>
+              <option>HR</option>
+              <option>Operations</option>
+              <option>Legal</option>
+            </select>
+          </div>
+          <span class="err">Select a department</span>
+        </div>
+        <div class="field" id="f-role">
+          <label for="role">Role / Title</label>
+          <input id="role" name="role" type="text" placeholder="Software Engineer" />
+          <span class="err">Required</span>
+        </div>
+        <div class="field" id="f-manager">
+          <label for="manager">Reporting Manager</label>
+          <input id="manager" name="manager" type="text" placeholder="Full name" />
+          <span class="err">Required</span>
+        </div>
+        <div class="field" id="f-joining_date">
+          <label for="joining_date">Joining Date</label>
+          <input id="joining_date" name="joining_date" type="date" />
+          <span class="err">Required</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Access -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <span class="section-title">Account Access</span>
+      </div>
+      <div class="grid-1">
+        <div class="field" id="f-temp_password">
+          <label for="temp_password">Temporary Password</label>
+          <div class="pw-wrap">
+            <input id="temp_password" name="temp_password" type="password" placeholder="Min. 8 characters" />
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Toggle password visibility">show</button>
+          </div>
+          <span class="err">Min. 8 characters</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button type="submit" class="btn-submit" id="submitBtn">Add Employee</button>
+      <span class="status" id="statusMsg"></span>
+    </div>
+
+  </form>
+</main>
+
+<div class="toast" id="toast">
+  <span class="toast-dot"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  const FIELDS = ['first_name','last_name','work_email','department','role','manager','joining_date','temp_password'];
+
+  // Progress rail
+  function updateProgress() {
+    let filled = 0;
+    FIELDS.forEach(name => {
+      const el = document.getElementById(name);
+      if (el && el.value.trim()) filled++;
+    });
+    const pct = Math.round((filled / FIELDS.length) * 100);
+    document.getElementById('railFill').style.height = pct + '%';
+    document.getElementById('railPct').textContent = pct + '%';
+  }
+
+  FIELDS.forEach(name => {
+    const el = document.getElementById(name);
+    if (el) el.addEventListener('input', updateProgress);
+    if (el) el.addEventListener('change', updateProgress);
+  });
+
+  // Password toggle
+  document.getElementById('pwToggle').addEventListener('click', () => {
+    const inp = document.getElementById('temp_password');
+    const btn = document.getElementById('pwToggle');
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = 'hide'; }
+    else { inp.type = 'password'; btn.textContent = 'show'; }
+  });
+
+  // Validation
+  function validate() {
+    let ok = true;
+    FIELDS.forEach(name => {
+      const field = document.getElementById('f-' + name);
+      const el = document.getElementById(name);
+      if (!field || !el) return;
+
+      const val = el.value.trim();
+      let valid = val.length > 0;
+
+      if (name === 'work_email') {
+        valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+      }
+      if (name === 'temp_password') {
+        valid = val.length >= 8;
+      }
+
+      if (!valid) {
+        field.classList.add('has-err');
+        el.classList.add('invalid');
+        el.classList.remove('valid');
+        ok = false;
+      } else {
+        field.classList.remove('has-err');
+        el.classList.remove('invalid');
+        el.classList.add('valid');
+      }
+    });
+    return ok;
+  }
+
+  // Toast
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    const m = document.getElementById('toastMsg');
+    t.className = 'toast toast-' + type;
+    m.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3800);
+  }
+
+  // Submit
+  document.getElementById('empForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const btn = document.getElementById('submitBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    statusMsg.className = 'status';
+
+    const payload = {};
+    FIELDS.forEach(name => {
+      payload[name] = document.getElementById(name).value.trim();
+    });
+
+    try {
+      const res = await fetch('/api/employee', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        showToast('Employee added successfully.', 'ok');
+        document.getElementById('empForm').reset();
+        FIELDS.forEach(n => {
+          const el = document.getElementById(n);
+          if (el) { el.classList.remove('valid','invalid'); }
+          const f = document.getElementById('f-' + n);
+          if (f) f.classList.remove('has-err');
+        });
+        updateProgress();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.detail || 'Server error — try again.', 'err');
+      }
+    } catch (err) {
+      showToast('Network error — check your connection.', 'err');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Add Employee';
+    }
+  });
+</script>
+</body>
+</html>

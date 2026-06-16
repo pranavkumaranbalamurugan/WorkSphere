@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee List — HomeSync</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface-2: #1c1c1c;
+      --border: #2a2a2a;
+      --accent: #b8ff57;
+      --accent-dim: rgba(184,255,87,0.07);
+      --danger: #ff4d4d;
+      --text: #e8e8e8;
+      --muted: #555;
+      --label: #888;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+      --display: 'Bebas Neue', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 56px 48px 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      margin-bottom: 48px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .header-left .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .header-left h1 {
+      font-family: var(--display);
+      font-size: clamp(40px, 5vw, 64px);
+      line-height: 0.95;
+      letter-spacing: 0.01em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .count-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(184,255,87,0.2);
+      border-radius: 3px;
+      padding: 4px 10px;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-refresh {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--label);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: border-color 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-home {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--label);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 14px;
+      border-radius: 4px;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-home:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-new {
+      background: var(--accent);
+      color: #0e0e0e;
+      font-family: var(--display);
+      font-size: 16px;
+      letter-spacing: 0.05em;
+      padding: 9px 22px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .btn-new:hover { opacity: 0.85; }
+
+    /* ── Search bar ── */
+    .toolbar {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 360px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 9px 14px 9px 36px;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-wrap input:focus { border-color: rgba(184,255,87,0.4); }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    /* ── Table container ── */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    thead th {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--label);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 13px 16px;
+      text-align: left;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+
+    thead th:first-child { padding-left: 20px; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+
+    tbody td {
+      padding: 14px 16px;
+      vertical-align: middle;
+      color: var(--text);
+    }
+
+    tbody td:first-child { padding-left: 20px; }
+
+    /* Emp ID */
+    .emp-id {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    /* Name cell */
+    .name-cell .full-name {
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .name-cell .email {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--label);
+      margin-top: 2px;
+    }
+
+    /* Role pill */
+    .role-pill {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 3px 9px;
+      border-radius: 3px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--label);
+      white-space: nowrap;
+    }
+
+    /* Null/empty */
+    .null-val {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    /* Date */
+    .date-val {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--label);
+      white-space: nowrap;
+    }
+
+    /* Password */
+    .pw-cell {
+      font-family: var(--mono);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pw-masked { letter-spacing: 0.15em; color: var(--muted); }
+
+    .pw-reveal {
+      background: none;
+      border: none;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .pw-reveal:hover { color: var(--accent); border-color: rgba(184,255,87,0.3); }
+
+    /* ── Delete buttons ── */
+    .btn-delete-all {
+      background: none;
+      border: 1px solid rgba(255,77,77,0.3);
+      color: var(--danger);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-delete-all:hover { background: rgba(255,77,77,0.08); border-color: var(--danger); }
+
+    .btn-delete-row {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 9px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-delete-row:hover { color: var(--danger); border-color: rgba(255,77,77,0.4); background: rgba(255,77,77,0.06); }
+    .btn-delete-row:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ── Confirm modal ── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-backdrop.show { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px;
+      max-width: 380px;
+      width: 90%;
+      transform: translateY(12px);
+      transition: transform 0.2s;
+    }
+
+    .modal-backdrop.show .modal { transform: translateY(0); }
+
+    .modal-icon {
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    .modal h3 {
+      font-family: var(--display);
+      font-size: 28px;
+      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: var(--label);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .modal p strong { color: var(--text); font-weight: 500; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--label);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
+    .btn-confirm-delete {
+      background: var(--danger);
+      border: none;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: opacity 0.15s;
+    }
+
+    .secret-input-wrap {
+      margin-top: 16px;
+    }
+
+    .secret-input-wrap label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--label);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .secret-input-wrap input {
+      width: 100%;
+      background: #0e0e0e;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 9px 12px;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .secret-input-wrap input:focus { border-color: rgba(255,77,77,0.5); }
+    .secret-input-wrap input.shake {
+      animation: shake 0.3s ease;
+      border-color: var(--danger);
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .btn-confirm-delete:hover { opacity: 0.85; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      display: flex; align-items: center; gap: 10px;
+      transform: translateY(16px); opacity: 0;
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok { border-color: rgba(184,255,87,0.35); }
+    .toast.err { border-color: rgba(255,77,77,0.35); }
+    .toast-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .toast.ok .toast-dot { background: var(--accent); }
+    .toast.err .toast-dot { background: var(--danger); }
+
+    /* ── States ── */
+    .state-row td {
+      text-align: center;
+      padding: 56px 16px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .err-state { color: var(--danger) !important; }
+
+    /* ── Footer ── */
+    .table-footer {
+      margin-top: 16px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 32px 16px 60px; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-left">
+      <p class="eyebrow">HR Portal · Records</p>
+      <h1>Display<br>Employee List</h1>
+    </div>
+    <div class="header-right">
+      <span class="count-badge" id="countBadge">— employees</span>
+      <button class="btn-refresh" id="refreshBtn" onclick="loadEmployees()">
+        <span id="refreshIcon">↺</span> Refresh
+      </button>
+      <button class="btn-delete-all" onclick="confirmDeleteAll()">⚠ Delete All</button>
+      <a href="index.html" class="btn-home">⌂ Home</a>
+      <a href="create_employee.html" class="btn-new">+ New Employee</a>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Search by name, email, ID..." oninput="filterTable()" />
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="empTable">
+      <thead>
+        <tr>
+          <th>Emp ID</th>
+          <th>Name</th>
+          <th>Department</th>
+          <th>Role</th>
+          <th>Manager</th>
+          <th>Joining Date</th>
+          <th>Temp Password</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="empBody">
+        <tr class="state-row">
+          <td colspan="8"><span class="spinner"></span>Loading employees...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="table-footer" id="tableFooter"></p>
+
+  <!-- Confirm modal -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <div class="modal-icon">🗑</div>
+      <h3 id="modalTitle">Confirm Delete</h3>
+      <p id="modalDesc">This action cannot be undone.</p>
+      <div class="secret-input-wrap" id="secretWrap" style="display:none;">
+        <label for="secretInput">Secret Code</label>
+        <input type="password" id="secretInput" placeholder="Enter secret to confirm" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-confirm-delete" id="modalConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span class="toast-dot"></span>
+    <span id="toastMsg"></span>
+  </div>
+
+  <script>
+    let allEmployees = [];
+    let pendingAction = null;
+
+    // ── Toast ──
+    function showToast(msg, type = 'ok') {
+      const t = document.getElementById('toast');
+      t.className = `toast ${type}`;
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ── Modal ──
+    function openModal(title, desc, onConfirm, requireSecret = false) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalDesc').innerHTML = desc;
+      const secretWrap = document.getElementById('secretWrap');
+      const secretInput = document.getElementById('secretInput');
+      secretWrap.style.display = requireSecret ? 'block' : 'none';
+      secretInput.value = '';
+      secretInput.classList.remove('shake');
+
+      document.getElementById('modalConfirmBtn').onclick = async () => {
+        if (requireSecret) {
+          const val = secretInput.value.trim();
+          if (!val) {
+            secretInput.classList.remove('shake');
+            void secretInput.offsetWidth; // reflow to restart animation
+            secretInput.classList.add('shake');
+            secretInput.focus();
+            return;
+          }
+          closeModal();
+          await onConfirm(val);
+        } else {
+          closeModal();
+          await onConfirm();
+        }
+      };
+
+      document.getElementById('modal').classList.add('show');
+      if (requireSecret) setTimeout(() => secretInput.focus(), 200);
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('show');
+      document.getElementById('secretInput').value = '';
+    }
+
+    // Close on backdrop click
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+
+    // ── Format helpers ──
+    function formatDate(iso) {
+      if (!iso) return '<span class="null-val">—</span>';
+      const d = new Date(iso);
+      return `<span class="date-val">${d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })}</span>`;
+    }
+
+    // ── Render ──
+    function renderRows(data) {
+      const tbody = document.getElementById('empBody');
+      if (!data.length) {
+        tbody.innerHTML = `<tr class="state-row"><td colspan="8">No employees found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(emp => {
+        const name = `${emp.first_name} ${emp.last_name}`;
+        const dept = emp.department || '<span class="null-val">—</span>';
+        const pwId = 'pw-' + emp.emp_id;
+
+        return `
+          <tr id="row-${emp.emp_id}">
+            <td><span class="emp-id">${emp.emp_id}</span></td>
+            <td>
+              <div class="name-cell">
+                <div class="full-name">${name}</div>
+                <div class="email">${emp.work_email}</div>
+              </div>
+            </td>
+            <td>${dept}</td>
+            <td><span class="role-pill">${emp.role}</span></td>
+            <td>${emp.manager || '<span class="null-val">—</span>'}</td>
+            <td>${formatDate(emp.joining_date)}</td>
+            <td>
+              <div class="pw-cell">
+                <span class="pw-masked" id="${pwId}" data-pw="${emp.temp_password}">••••••••</span>
+                <button class="pw-reveal" onclick="togglePw('${pwId}', this)">show</button>
+              </div>
+            </td>
+            <td>
+              <button class="btn-delete-row" id="delbtn-${emp.emp_id}"
+                onclick="confirmDeleteOne('${emp.emp_id}', '${name}')">
+                ✕ Delete
+              </button>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function togglePw(id, btn) {
+      const el = document.getElementById(id);
+      if (btn.textContent === 'show') { el.textContent = el.dataset.pw; btn.textContent = 'hide'; }
+      else { el.textContent = '••••••••'; btn.textContent = 'show'; }
+    }
+
+    // ── Filter ──
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allEmployees.filter(emp =>
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(q) ||
+        emp.work_email.toLowerCase().includes(q) ||
+        emp.emp_id.toLowerCase().includes(q) ||
+        (emp.department || '').toLowerCase().includes(q) ||
+        emp.role.toLowerCase().includes(q)
+      );
+      renderRows(filtered);
+      document.getElementById('tableFooter').textContent =
+        filtered.length !== allEmployees.length
+          ? `Showing ${filtered.length} of ${allEmployees.length} employees` : '';
+    }
+
+    // ── Load ──
+    async function loadEmployees() {
+      const tbody = document.getElementById('empBody');
+      const badge = document.getElementById('countBadge');
+      const icon  = document.getElementById('refreshIcon');
+
+      tbody.innerHTML = `<tr class="state-row"><td colspan="8"><span class="spinner"></span>Loading employees...</td></tr>`;
+      badge.textContent = '— employees';
+      icon.style.opacity = '0.4';
+
+      try {
+        const res = await fetch('/api/employees');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        allEmployees = await res.json();
+        renderRows(allEmployees);
+        badge.textContent = `${allEmployees.length} employee${allEmployees.length !== 1 ? 's' : ''}`;
+        document.getElementById('tableFooter').textContent = '';
+      } catch (err) {
+        tbody.innerHTML = `<tr class="state-row"><td colspan="8" class="err-state">Failed to load — ${err.message}. Check the API is running.</td></tr>`;
+        badge.textContent = 'error';
+      } finally {
+        icon.style.opacity = '1';
+      }
+    }
+
+    // ── Delete one ──
+    function confirmDeleteOne(empId, name) {
+      openModal(
+        'Delete Employee',
+        `This will permanently remove <strong>${name}</strong> (${empId}). This cannot be undone.`,
+        () => deleteOne(empId, name)
+      );
+    }
+
+    async function deleteOne(empId, name) {
+      const btn = document.getElementById('delbtn-' + empId);
+      if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+      try {
+        const res = await fetch(`/api/employee/${empId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // Remove from local array and re-render
+        allEmployees = allEmployees.filter(e => e.emp_id !== empId);
+        renderRows(allEmployees);
+        document.getElementById('countBadge').textContent =
+          `${allEmployees.length} employee${allEmployees.length !== 1 ? 's' : ''}`;
+        showToast(`${name} removed.`, 'ok');
+      } catch (err) {
+        if (btn) { btn.disabled = false; btn.textContent = '✕ Delete'; }
+        showToast(`Delete failed — ${err.message}`, 'err');
+      }
+    }
+
+    // ── Delete all ──
+    function confirmDeleteAll() {
+      if (!allEmployees.length) { showToast('No employees to delete.', 'err'); return; }
+      openModal(
+        'Delete All Employees',
+        `This will permanently remove all <strong>${allEmployees.length} employees</strong> from the database. This cannot be undone.`,
+        deleteAll,
+        true  // require secret
+      );
+    }
+
+    async function deleteAll(secret) {
+      try {
+        const res = await fetch(`/api/test/delete_all_values?secret=${encodeURIComponent(secret)}`, { method: 'DELETE' });
+        if (res.status === 401 || res.status === 403) {
+          showToast('Incorrect secret code.', 'err'); return;
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        allEmployees = [];
+        renderRows([]);
+        document.getElementById('countBadge').textContent = '0 employees';
+        showToast('All employees deleted.', 'ok');
+      } catch (err) {
+        showToast(`Failed — ${err.message}`, 'err');
+      }
+    }
+
+    loadEmployees();
+  </script>
+</body>
+</html>
