@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 
 #Services Import
-from app.models import Employee, Companies
+from app.models import Employee, Companies, User
 from app.schemas import CompanySignupSchema
 from app.db import get_db
 
-test=APIRouter()
+test=APIRouter(tags=["test"])
 
 
 @test.delete("/api/test/delete_all_employees")
@@ -51,3 +51,8 @@ def create_company(company: CompanySignupSchema,db:Session=Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code =500, detail=str(e))
+    
+@test.get("/api/test/users")
+def get_users(db:Session=Depends(get_db)):
+
+    return db.query(User).all()

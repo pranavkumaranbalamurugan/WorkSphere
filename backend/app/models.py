@@ -12,12 +12,11 @@ class Employee(Base):
     last_name= Column(String)
     personal_email=Column(String, unique=True)
     work_email=Column(String, unique=True)
-    phone=Column(String, unique=True) 
-    hashed_password=Column(String)
-    role=Column(String)
+    phone=Column(String, unique=True)
     manager=Column(String)
     company_name=Column(String)
     joining_date=Column(DateTime)
+
 
 class Companies(Base):
     __tablename__="companies"

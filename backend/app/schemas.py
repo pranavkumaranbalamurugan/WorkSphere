@@ -9,22 +9,6 @@ class CreateUserRequest(BaseModel):
     role:str
     company_id:int
 
-class CreateUser(BaseModel):
-    emp_id: str
-    first_name: str
-    last_name: str
-    personal_email: EmailStr
-    work_email: EmailStr
-    phone: str
-    department: str
-    hashed_password: str
-    role: str
-    department: str
-    manager: str
-    designation: str
-    joining_date:date
-    hashed_password: str
-
 class Token(BaseModel):
     access_token:str
     token_type:str
@@ -35,10 +19,16 @@ class TokenData(BaseModel):
     company_id:str
 
 class CreateEmployeeSchema(BaseModel):
-
     first_name: str
     last_name:str
     manager: str
+
+class UpdateEmployeeSchema(BaseModel):
+    first_name:str
+    last_name:str
+    personal_email:EmailStr
+    phone:str
+    country:str
 
 class CompanySignupSchema(BaseModel):
     company_name:str

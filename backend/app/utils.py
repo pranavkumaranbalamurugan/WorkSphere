@@ -13,7 +13,6 @@ from app.schemas import TokenData
 from app.db import get_db
 from app.config import SECRET_KEY, ALGORITHM, oauth2_scheme
 
-
 #Employee ID generation
 def generate_emp_id(db: Session):
 
@@ -54,8 +53,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
-        work_email = payload.get("sub")
-        emp_id = payload.get("id")
+        work_email = payload.get("work_email")
         role = payload.get("role")
         company_id=payload.get("company_id")
 
@@ -67,7 +65,6 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
         return {
             "work_email":work_email,
-            "id": emp_id,
             "role": role,
             "company_id": company_id
         }
@@ -104,7 +101,7 @@ def require_roles(allowed_roles: list[str]):
         ]
     ):
 
-        if current_user.role not in allowed_roles:
+        if current_user["role"] not in allowed_roles:
             raise HTTPException(
                 status_code=403,
                 detail="Forbidden"
@@ -115,30 +112,45 @@ def require_roles(allowed_roles: list[str]):
     return checker
 
 
-def generate_work_email(first_name:str, last_name:str, db:Session = Depends(get_db)):
+def generate_work_email(first_name:str, last_name:str, company_id:int, db:Session = Depends(get_db)):
 
-    company_details=get_company_details()
-    company_domain=company_details.domain
+    company_details= fetch_company_details(company_id,db)
+    company_domain=company_details["domain"]
+
+    first_name=first_name.lower()
+    last_name=last_name.lower()
 
     return f"{first_name}.{last_name}@{company_domain}"
 
-def get_company_details(current_user:Annotated[TokenData, Depends(get_current_user)], db:Session = Depends(get_db)):
-    company_id = current_user.company_id
+def format_phone(country:str,phone:str):
+    
+    country_codes={"India":"+91"}
 
-    company_name=(
-        db.query(Companies.company_name)
-        .filter(Companies.company_id==company_id)
-        .scalar()
-    ) 
+    code=country_codes[country]
+    
+    if code is None:
+        raise ValueError(f"Unsupported Country: {country}")
 
-    company_domain=(
-        db.query(Companies.company_domain)
-        .filter(Companies.company_id==company_id)
-        .scalar()
+    
+    first=phone[0:5]
+    last=phone[5:]
+
+    return f"{code} {first} {last}"
+
+def fetch_company_details(company_id: int, db: Session):
+    company = (
+        db.query(Companies)
+        .filter(Companies.company_id == company_id)
+        .first()
     )
 
-    return{
-        "id":company_id,
-        "name":company_name,
-        "domain":company_domain
-    }      
+    return {
+        "id": company.company_id,
+        "name": company.company_name,
+        "domain": company.company_domain
+    }
+def get_company_details(
+    current_user: Annotated[TokenData, Depends(get_current_user)],
+    db: Session = Depends(get_db)
+):
+    return fetch_company_details(current_user.company_id, db)
